@@ -1,7 +1,10 @@
 FROM golang:1.21-alpine AS builder
 
-# Build stage
 WORKDIR /app
+
+# Cache bust - change this value to force rebuild
+ARG CACHE_BUST=20260108_2103
+RUN echo "Cache bust: $CACHE_BUST"
 
 COPY go.mod go.sum ./
 RUN go mod download
