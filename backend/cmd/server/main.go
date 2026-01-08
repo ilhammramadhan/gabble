@@ -68,7 +68,21 @@ func main() {
 	r.Use(chimw.Timeout(60 * time.Second))
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.FrontendURL, "http://localhost:3000"},
+		AllowOriginFunc: func(r *http.Request, origin string) bool {
+			// Allow localhost for development
+			if strings.HasPrefix(origin, "http://localhost") {
+				return true
+			}
+			// Allow all Vercel preview URLs
+			if strings.HasSuffix(origin, ".vercel.app") {
+				return true
+			}
+			// Allow configured frontend URL
+			if origin == cfg.FrontendURL {
+				return true
+			}
+			return false
+		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
