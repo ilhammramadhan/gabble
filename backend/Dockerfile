@@ -21,6 +21,14 @@ WORKDIR /root/
 
 COPY --from=builder /app/server .
 
+# Environment variables (set by Railway)
+ENV DATABASE_URL=""
+ENV GITHUB_CLIENT_ID=""
+ENV GITHUB_CLIENT_SECRET=""
+ENV JWT_SECRET=""
+ENV FRONTEND_URL=""
+ENV PORT=8080
+
 EXPOSE 8080
 
 CMD ["./server"]
