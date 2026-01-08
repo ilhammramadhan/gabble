@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -20,6 +21,19 @@ import (
 )
 
 func main() {
+	// Debug: print all env vars that start with common prefixes
+	log.Println("=== Environment Variables Debug ===")
+	for _, env := range os.Environ() {
+		// Only log non-sensitive variable names
+		if len(env) > 0 {
+			parts := strings.SplitN(env, "=", 2)
+			if len(parts) == 2 {
+				log.Printf("ENV: %s (len=%d)", parts[0], len(parts[1]))
+			}
+		}
+	}
+	log.Println("=== End Environment Variables ===")
+
 	cfg := config.Load()
 
 	// Debug: log if DATABASE_URL is set
