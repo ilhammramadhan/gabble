@@ -22,6 +22,12 @@ import (
 func main() {
 	cfg := config.Load()
 
+	// Debug: log if DATABASE_URL is set
+	if cfg.DatabaseURL == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
+	log.Printf("Connecting to database (URL length: %d)", len(cfg.DatabaseURL))
+
 	db, err := database.New(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
