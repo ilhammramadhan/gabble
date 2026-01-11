@@ -26,6 +26,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Use refs to avoid stale closures in WebSocket callbacks
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
   const connect = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -52,24 +58,24 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
           switch (message.type) {
             case "message":
-              options.onMessage?.(message.payload as MessagePayload);
+              optionsRef.current.onMessage?.(message.payload as MessagePayload);
               break;
             case "user_joined":
-              options.onUserJoined?.(message.payload as UserEventPayload);
+              optionsRef.current.onUserJoined?.(message.payload as UserEventPayload);
               break;
             case "user_left":
-              options.onUserLeft?.(message.payload as UserEventPayload);
+              optionsRef.current.onUserLeft?.(message.payload as UserEventPayload);
               break;
             case "typing":
-              options.onTyping?.(message.payload as TypingEventPayload);
+              optionsRef.current.onTyping?.(message.payload as TypingEventPayload);
               break;
             case "online_users":
               const payload = message.payload as OnlineUsersPayload;
               setOnlineUsers(payload.users);
-              options.onOnlineUsers?.(payload);
+              optionsRef.current.onOnlineUsers?.(payload);
               break;
             case "error":
-              options.onError?.((message.payload as { message: string }).message);
+              optionsRef.current.onError?.((message.payload as { message: string }).message);
               break;
           }
         } catch (err) {
@@ -81,7 +87,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     } catch (err) {
       console.error("Failed to connect WebSocket:", err);
     }
-  }, [options]);
+  }, []);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
