@@ -41,10 +41,21 @@ func NewAuthHandler(db *database.DB, cfg *config.Config) *AuthHandler {
 }
 
 func (h *AuthHandler) GithubLogin(w http.ResponseWriter, r *http.Request) {
+	// Build callback URL using the current request's host (backend URL)
+	scheme := "https"
+	if r.TLS == nil && r.Header.Get("X-Forwarded-Proto") == "" {
+		scheme = "http"
+	}
+	if proto := r.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	}
+	host := r.Host
+	callbackURL := fmt.Sprintf("%s://%s/auth/github/callback", scheme, host)
+
 	url := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s/auth/github/callback&scope=user:email",
+		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=user:email",
 		h.Config.GithubClientID,
-		h.Config.FrontendURL,
+		callbackURL,
 	)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
@@ -52,19 +63,19 @@ func (h *AuthHandler) GithubLogin(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) GithubCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		http.Error(w, "Code not provided", http.StatusBadRequest)
+		http.Redirect(w, r, h.Config.FrontendURL+"?error=code_not_provided", http.StatusTemporaryRedirect)
 		return
 	}
 
 	accessToken, err := h.exchangeCodeForToken(code)
 	if err != nil {
-		http.Error(w, "Failed to exchange code for token", http.StatusInternalServerError)
+		http.Redirect(w, r, h.Config.FrontendURL+"?error=token_exchange_failed", http.StatusTemporaryRedirect)
 		return
 	}
 
 	githubUser, err := h.getGithubUser(accessToken)
 	if err != nil {
-		http.Error(w, "Failed to get GitHub user", http.StatusInternalServerError)
+		http.Redirect(w, r, h.Config.FrontendURL+"?error=github_user_failed", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -75,18 +86,18 @@ func (h *AuthHandler) GithubCallback(w http.ResponseWriter, r *http.Request) {
 		githubUser.AvatarURL,
 	)
 	if err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		http.Redirect(w, r, h.Config.FrontendURL+"?error=user_creation_failed", http.StatusTemporaryRedirect)
 		return
 	}
 
 	token, err := h.generateJWT(user)
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		http.Redirect(w, r, h.Config.FrontendURL+"?error=jwt_generation_failed", http.StatusTemporaryRedirect)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(AuthResponse{Token: token, User: user})
+	// Redirect to frontend with token
+	http.Redirect(w, r, h.Config.FrontendURL+"?token="+token, http.StatusTemporaryRedirect)
 }
 
 func (h *AuthHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {

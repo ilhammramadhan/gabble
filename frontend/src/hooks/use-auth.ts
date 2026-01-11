@@ -9,6 +9,27 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const checkAuth = useCallback(async () => {
+    // Check for token in URL (from OAuth callback)
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get("token");
+      const error = urlParams.get("error");
+
+      if (error) {
+        console.error("OAuth error:", error);
+        // Clear URL params
+        window.history.replaceState({}, "", window.location.pathname);
+        setLoading(false);
+        return;
+      }
+
+      if (tokenFromUrl) {
+        localStorage.setItem("token", tokenFromUrl);
+        // Clear URL params
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+
     const token = localStorage.getItem("token");
     if (!token) {
       setLoading(false);
