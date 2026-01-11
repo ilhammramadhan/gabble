@@ -2,10 +2,28 @@
 
 A real-time chat application with public rooms, built with Go and Next.js.
 
-![Go](https://img.shields.io/badge/Go-1.22-00ADD8?style=flat-square&logo=go)
+![Go](https://img.shields.io/badge/Go-1.21-00ADD8?style=flat-square&logo=go)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)
+
+## Live Demo
+
+**[gabble-chi.vercel.app](https://gabble-chi.vercel.app)**
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/dark-mode.png" alt="Dark Mode" width="100%">
+  <br>
+  <em>Dark Mode</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/light-mode.png" alt="Light Mode" width="100%">
+  <br>
+  <em>Light Mode</em>
+</p>
 
 ## Features
 
@@ -34,7 +52,7 @@ A real-time chat application with public rooms, built with Go and Next.js.
 - [next-themes](https://github.com/pacocoursey/next-themes) - Theme switching
 
 ### Infrastructure
-- [Fly.io](https://fly.io/) - Backend hosting
+- [Railway](https://railway.app/) - Backend hosting
 - [Vercel](https://vercel.com/) - Frontend hosting
 - [Neon](https://neon.tech/) - PostgreSQL database
 
@@ -42,7 +60,7 @@ A real-time chat application with public rooms, built with Go and Next.js.
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.21+
 - Node.js 18+
 - PostgreSQL database
 
@@ -102,7 +120,6 @@ gabble/
 │   │   ├── middleware/          # JWT auth middleware
 │   │   ├── models/              # User, Room, Message
 │   │   └── websocket/           # Hub, Client, Events
-│   ├── Dockerfile
 │   ├── go.mod
 │   └── go.sum
 │
@@ -159,35 +176,26 @@ gabble/
 
 ## Deployment
 
-### Backend (Fly.io)
+### Backend (Railway)
 
-```bash
-cd backend
-
-# Install flyctl
-curl -L https://fly.io/install.sh | sh
-
-# Login and launch
-fly auth login
-fly launch
-
-# Set secrets
-fly secrets set DATABASE_URL="postgres://..."
-fly secrets set GITHUB_CLIENT_ID="..."
-fly secrets set GITHUB_CLIENT_SECRET="..."
-fly secrets set JWT_SECRET="..."
-fly secrets set FRONTEND_URL="https://your-app.vercel.app"
-
-# Deploy
-fly deploy
-```
+1. Create account at [railway.app](https://railway.app)
+2. Create new project → Deploy from GitHub repo
+3. Set root directory to `backend`
+4. Add environment variables:
+   - `DATABASE_URL`
+   - `GITHUB_CLIENT_ID`
+   - `GITHUB_CLIENT_SECRET`
+   - `JWT_SECRET`
+   - `FRONTEND_URL`
+5. Generate domain in Settings → Networking
 
 ### Frontend (Vercel)
 
 1. Push to GitHub
 2. Import project in Vercel
-3. Set environment variable: `NEXT_PUBLIC_API_URL`
-4. Deploy
+3. Set root directory to `frontend`
+4. Set environment variable: `NEXT_PUBLIC_API_URL`
+5. Deploy
 
 ### Database (Neon)
 
@@ -205,7 +213,7 @@ fly deploy
 | `GITHUB_CLIENT_ID` | GitHub OAuth app client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth app secret |
 | `JWT_SECRET` | Secret for signing JWT tokens |
-| `FRONTEND_URL` | Frontend URL for CORS |
+| `FRONTEND_URL` | Frontend URL for CORS & redirects |
 
 ### Frontend
 | Variable | Description |
